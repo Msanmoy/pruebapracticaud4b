@@ -4,17 +4,22 @@ import net.bytebuddy.asm.Advice;
 import org.iesvdm.appointment.entity.Appointment;
 import org.iesvdm.appointment.entity.AppointmentStatus;
 import org.iesvdm.appointment.entity.Customer;
+import org.iesvdm.appointment.entity.User;
 import org.iesvdm.appointment.repository.AppointmentRepository;
 import org.iesvdm.appointment.repository.ExchangeRequestRepository;
 import org.iesvdm.appointment.repository.impl.AppointmentRepositoryImpl;
+import org.iesvdm.appointment.service.ExchangeService;
 import org.iesvdm.appointment.service.NotificationService;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
-
+import static org.assertj.core.api.Assertions.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ExchangeServiceImplTest {
 
@@ -81,7 +86,16 @@ public class ExchangeServiceImplTest {
      */
     @Test
     void checkIfEligibleForExchange() {
-
+        User user = Mockito.mock(User.class);
+        Customer customer = new Customer();
+        customer.setId(3);
+        Appointment appointment1 = new Appointment();
+        appointment1.setId(1);
+        appointment1.setStatus(AppointmentStatus.SCHEDULED);
+        appointment1.setCustomer(customer);
+        appointment1.setStart(LocalDateTime.of(2024, 6, 10,6, 0));
+        Mockito.when(appointmentRepository.getOne(1)).thenReturn(appointment1);
+        assertTrue(exchangeService.checkIfEligibleForExchange(3,1));
     }
 
 
@@ -96,7 +110,13 @@ public class ExchangeServiceImplTest {
      */
     @Test
     void getEligibleAppointmentsForExchangeTest() {
-
+        appointment1.setId(1);
+        appointment2.setId(2);
+        appointmentRepository.save(appointment1);
+        appointmentRepository.save(appointment2);
+        Assertions.assertEquals(exchangeService.getEligibleAppointmentsForExchange(2),appointment1);
+        Mockito.verify(appointmentRepository).getOne(appointmentIdCaptor.capture());
+        //Este test no debería dar fallo, pero lo da.
     }
 
     /**
